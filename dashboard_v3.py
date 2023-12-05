@@ -27,7 +27,7 @@ for key in data_dict:
         buttonId_lst.append(f"{key}|&|{value}")
         buttons.append(dbc.Button(value, id=f"{key}|&|{value}", value=f"{key}|&|{value}"))
 
-
+var1_var2 = buttonId_lst[0]
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -77,16 +77,16 @@ sidebar = html.Div(
 )
 
 
-heading = html.H3(id="output", style=CONTENT_STYLE)
+heading = html.H3(children=' | '.join(var1_var2.split('|&|')), id="output", style=CONTENT_STYLE)
 
 
 @app.callback(Output("output", "children"), [Input(x, "n_clicks") for x in buttonId_lst])
 def display_value(*val):
     trigger = callback_context.triggered[0]
     if trigger["prop_id"] == ".":
-        return
-    rt_str = trigger["prop_id"].split('.')[0].split('|&|')
-    global var1_var2 
+        return ' | '.join(buttonId_lst[0].split('|&|'))
+    rt_str = trigger["prop_id"].split('.')[0].split('|&|') 
+    global var1_var2
     var1_var2 = f"{rt_str[0]}|&|{rt_str[1]}"
     return f"{rt_str[0]}  |  {rt_str[1]}"
 
@@ -97,15 +97,10 @@ dropdown_selections = html.Div(
 
 @app.callback(Output("dropdown_selections_output", "children"), [Input(x, "n_clicks") for x in buttonId_lst])
 def display_value(*var):
-    trigger = callback_context.triggered[0]
-    if trigger["prop_id"] == ".":
-        return
-    
-    val = trigger["prop_id"].split('.')[0]
 
-    if val != "" and val != None:
+    if var1_var2 != "" and var1_var2 != None:
 
-        filtered_df = df[(df['Var1'] == val.split('|&|')[0]) & (df['Var2'] == val.split('|&|')[1])]
+        filtered_df = df[(df['Var1'] == var1_var2.split('|&|')[0]) & (df['Var2'] == var1_var2.split('|&|')[1])]
         var3_list = filtered_df['var3'].drop_duplicates().to_list()
         var4_list = filtered_df['var4'].drop_duplicates().to_list()
         var5_list = filtered_df['var5'].drop_duplicates().to_list()
