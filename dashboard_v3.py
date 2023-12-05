@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html, dash_table
 import pandas as pd
 import plotly.graph_objs as go
+from dash import callback_context
 
 df = pd.read_csv("df.csv")
 
@@ -17,12 +18,15 @@ for ele in temp_df.values.tolist():
         data_dict[ele[0]] = set()
         data_dict[ele[0]].add(ele[1])
 
-radioItems_lst = []
+buttonId_lst = []
+buttons = []
 
 for key in data_dict:
+    buttons.append(html.H5(key))
     for value in data_dict[key]:
-        radioItems_lst.append(
-            {"label": f"{key} - {value}", "value": f"{key}|&|{value}"})
+        buttonId_lst.append(f"{key}|&|{value}")
+        buttons.append(dbc.Button(value, id=f"{key}|&|{value}", value=f"{key}|&|{value}"))
+
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -59,19 +63,11 @@ TABLE_CHART_STYLE = {
     "padding": "1rem",
 }
 
+button_group = dbc.ButtonGroup(buttons, id="btn_group", vertical=True,)
+
 sidebar_list = [html.H2("Dashboard", className="display-6"),
                 html.Hr(),
-                html.Div([
-                    html.H6('var1 var2 list', style=CONTENT_STYLE),
-                    dbc.RadioItems(
-                        id="radios",
-                        className="btn-group",
-                        inputClassName="btn-check",
-                        labelClassName="btn btn-outline-primary",
-                        labelCheckedClassName="active",
-                        options=radioItems_lst,
-                        value=radioItems_lst[0]["value"],)],
-                style={'display': 'block', 'margin-bottom': '0.75rem'}),
+                html.Div([button_group], style={'display': 'block', 'margin-bottom': '0.75rem'}),
                 ]
 
 
@@ -84,19 +80,29 @@ sidebar = html.Div(
 heading = html.H3(id="output", style=CONTENT_STYLE)
 
 
-@app.callback(Output("output", "children"), [Input("radios", "value")])
-def display_value(val):
-    if val != "" and val != None:
-        return "Factors"
-    return
+@app.callback(Output("output", "children"), [Input(x, "n_clicks") for x in buttonId_lst])
+def display_value(*val):
+    trigger = callback_context.triggered[0]
+    if trigger["prop_id"] == ".":
+        return
+    rt_str = trigger["prop_id"].split('.')[0].split('|&|')
+    global var1_var2 
+    var1_var2 = f"{rt_str[0]}|&|{rt_str[1]}"
+    return f"{rt_str[0]}  |  {rt_str[1]}"
 
 
 dropdown_selections = html.Div(
     id="dropdown_selections_output", style=DROPDOWN_WRAPPER)
 
 
-@app.callback(Output("dropdown_selections_output", "children"), [Input("radios", "value")])
-def display_value(val:str):
+@app.callback(Output("dropdown_selections_output", "children"), [Input(x, "n_clicks") for x in buttonId_lst])
+def display_value(*var):
+    trigger = callback_context.triggered[0]
+    if trigger["prop_id"] == ".":
+        return
+    
+    val = trigger["prop_id"].split('.')[0]
+
     if val != "" and val != None:
 
         filtered_df = df[(df['Var1'] == val.split('|&|')[0]) & (df['Var2'] == val.split('|&|')[1])]
@@ -146,13 +152,13 @@ content_table = html.Div(id="output_table", style=CONTENT_STYLE)
 
 
 @app.callback(Output("output_table", "children"),
-              [Input("radios", "value"),
-               Input("dynamic-dropdown-container3", "value"),
+              [Input("dynamic-dropdown-container3", "value"),
                Input("dynamic-dropdown-container4", "value"),
                Input("dynamic-dropdown-container5", "value")])
-def display_value(val, var3, var4, var5):
-    if val.split('|&|')[0] != "" and val.split('|&|')[1] != "" and var3 != "" and var4 != "" and var5 != "" and val.split('|&|')[0] != None and val.split('|&|')[1] != None and var3 != None and var4 != None and var5 != None:
-        tmp_df = df[(df['Var1'] == val.split('|&|')[0]) & (df['Var2'] == val.split('|&|')[1]) & (
+def display_value(var3, var4, var5):
+
+    if var3 != "" and var4 != "" and var5 != "" and var3 != None and var4 != None and var5 != None:
+        tmp_df = df[(df['Var1'] == var1_var2.split('|&|')[0]) & (df['Var2'] == var1_var2.split('|&|')[1]) & (
             df['var3'].isin(var3)) & (df['var4'].isin(var4)) & (df['var5'].isin(var5))]
         tmp_df_1 = tmp_df[['var3', 'var4', 'var5', 'Z']]
         fig = go.Figure()
