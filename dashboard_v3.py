@@ -25,9 +25,10 @@ for key in data_dict:
     buttons.append(html.H5(key))
     for value in data_dict[key]:
         buttonId_lst.append(f"{key}|&|{value}")
-        buttons.append(dbc.Button(value, id=f"{key}|&|{value}", value=f"{key}|&|{value}"))
+        buttons.append(dbc.Button(value, id=f"{key}|&|{value}", value=f"{key}|&|{value}", class_name='btn'))
 
 var1_var2 = buttonId_lst[0]
+buttons[1].class_name = 'btn active'
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -79,6 +80,23 @@ sidebar = html.Div(
 
 heading = html.H3(children=' | '.join(var1_var2.split('|&|')), id="output", style=CONTENT_STYLE)
 
+@app.callback(
+    [Output(x, "class_name") for x in buttonId_lst],
+    [Input(x, "n_clicks") for x in buttonId_lst],
+)
+def set_active(*args):
+    ctx = dash.callback_context
+
+    if not ctx.triggered or not any(args):
+        lst =  ["btn" for _ in buttonId_lst]
+        lst[0] = "btn active"
+        return lst
+
+    # get id of triggering button
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    return ["btn active" if button_id == x else "btn" for x in buttonId_lst
+    ]
 
 @app.callback(Output("output", "children"), [Input(x, "n_clicks") for x in buttonId_lst])
 def display_value(*val):
