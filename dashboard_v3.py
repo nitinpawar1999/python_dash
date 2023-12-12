@@ -33,7 +33,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # the style arguments for the sidebar. We use position:fixed and a fixed width
 SIDEBAR_STYLE = {
-    "width": "15rem",
+    "width": "20rem",
     "padding": "1rem 2rem",
     "background-color": "#f8f9fa",
 }
@@ -77,18 +77,18 @@ sidebar = html.Div(
 )
 
 
-heading = html.H3(children=var1_var2.split('|&|')[1], id="output", style=CONTENT_STYLE)
+heading = html.H3(children=' | '.join(var1_var2.split('|&|')), id="output", style=CONTENT_STYLE)
 
 
 @app.callback(Output("output", "children"), [Input(x, "n_clicks") for x in buttonId_lst])
 def display_value(*val):
     trigger = callback_context.triggered[0]
     if trigger["prop_id"] == ".":
-        return buttonId_lst[0].split('|&|')[1]
+        return ' | '.join(buttonId_lst[0].split('|&|'))
     rt_str = trigger["prop_id"].split('.')[0].split('|&|') 
     global var1_var2
     var1_var2 = f"{rt_str[0]}|&|{rt_str[1]}"
-    return f"{rt_str[1]}"
+    return f"{rt_str[0]}  |  {rt_str[1]}"
 
 
 dropdown_selections = html.Div(
